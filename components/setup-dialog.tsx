@@ -15,7 +15,7 @@ import {
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { refuelWindow } from "@/lib/race-rules";
+import { driverChangeWindow, refuelWindow } from "@/lib/race-rules";
 import type { DriverId, TeamNumber } from "@/lib/types";
 
 export function SetupDialog() {
@@ -23,11 +23,31 @@ export function SetupDialog() {
   const setTeamNumber = useRaceStore((s) => s.setTeamNumber);
   const setDriverName = useRaceStore((s) => s.setDriverName);
   const setStintOrder = useRaceStore((s) => s.setStintOrder);
+  const setDriverChangeMinute = useRaceStore((s) => s.setDriverChangeMinute);
   const status = useRaceStore((s) => s.status);
   const [open, setOpen] = useState(false);
 
   const w1 = refuelWindow(config.teamNumber, 1);
   const w2 = refuelWindow(config.teamNumber, 2);
+  const dc1 = driverChangeWindow(1, {
+    minute1: config.driverChangeMinute1,
+    minute2: config.driverChangeMinute2,
+  });
+  const dc2 = driverChangeWindow(2, {
+    minute1: config.driverChangeMinute1,
+    minute2: config.driverChangeMinute2,
+  });
+
+  const onDcMinuteChange = (index: 1 | 2, raw: string) => {
+    const trimmed = raw.trim();
+    if (trimmed === "") {
+      setDriverChangeMinute(index, undefined);
+      return;
+    }
+    const n = Number(trimmed);
+    if (!Number.isFinite(n)) return;
+    setDriverChangeMinute(index, n);
+  };
 
   const setStint = (idx: 0 | 1 | 2, driverId: DriverId) => {
     const next = [...config.stintOrder] as [DriverId, DriverId, DriverId];
@@ -70,6 +90,53 @@ export function SetupDialog() {
             <p className="text-xs text-zinc-500">
               Refuel windows for team {config.teamNumber}: min {w1.openMin} and {w2.openMin}.
             </p>
+          </div>
+
+          <div className="space-y-2 rounded-md border border-zinc-800 p-3">
+            <Label>Driver-change stop minutes (briefing draw)</Label>
+            <p className="text-xs text-zinc-500">
+              Leave empty to use the default windows (18–20 and 38–40). If the
+              briefing assigns you a specific minute, enter it here — the window
+              narrows to a 1-minute slot.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="dc1" className="text-zinc-500">
+                  Stop 1 (between 18–20)
+                </Label>
+                <Input
+                  id="dc1"
+                  type="number"
+                  min={18}
+                  max={20}
+                  step={1}
+                  placeholder="auto 18–20"
+                  value={config.driverChangeMinute1 ?? ""}
+                  onChange={(e) => onDcMinuteChange(1, e.target.value)}
+                />
+                <p className="text-[11px] text-zinc-500 font-mono tabular-nums">
+                  Window: {dc1.openMin}:00–{dc1.closeMin}:00
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="dc2" className="text-zinc-500">
+                  Stop 2 (between 38–40)
+                </Label>
+                <Input
+                  id="dc2"
+                  type="number"
+                  min={38}
+                  max={40}
+                  step={1}
+                  placeholder="auto 38–40"
+                  value={config.driverChangeMinute2 ?? ""}
+                  onChange={(e) => onDcMinuteChange(2, e.target.value)}
+                />
+                <p className="text-[11px] text-zinc-500 font-mono tabular-nums">
+                  Window: {dc2.openMin}:00–{dc2.closeMin}:00
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

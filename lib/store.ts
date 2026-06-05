@@ -78,6 +78,7 @@ export interface RaceStore extends RaceState {
   setTeamNumber: (n: TeamNumber) => void;
   setDriverName: (id: DriverId, name: string) => void;
   setStintOrder: (order: [DriverId, DriverId, DriverId]) => void;
+  setDriverChangeMinute: (index: 1 | 2, minute: number | undefined) => void;
 
   startRace: () => void;
   pitIn: (reason?: "driver_change" | "refuel" | "other") => void;
@@ -124,6 +125,14 @@ export const useRaceStore = create<RaceStore>()(
           config: { ...s.config, stintOrder: order },
           currentDriver: s.status === "idle" ? order[0] : s.currentDriver,
         })),
+
+      setDriverChangeMinute: (index, minute) =>
+        set((s) => {
+          const next = { ...s.config };
+          if (index === 1) next.driverChangeMinute1 = minute;
+          else next.driverChangeMinute2 = minute;
+          return { config: next };
+        }),
 
       startRace: () => {
         const s = get();

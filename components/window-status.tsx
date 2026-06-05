@@ -78,10 +78,15 @@ export function WindowStatus() {
   const startedAt = useRaceStore((s) => s.startedAt);
   const finishedAt = useRaceStore((s) => s.finishedAt);
   const teamNumber = useRaceStore((s) => s.config.teamNumber);
+  const dc1Override = useRaceStore((s) => s.config.driverChangeMinute1);
+  const dc2Override = useRaceStore((s) => s.config.driverChangeMinute2);
   const fullState = useRaceStore((s) => s);
   const now = useTick(500);
   const elapsed = elapsedFromState({ status, startedAt, finishedAt }, now);
-  const windows = buildWindows(teamNumber);
+  const windows = buildWindows(teamNumber, {
+    minute1: dc1Override,
+    minute2: dc2Override,
+  });
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

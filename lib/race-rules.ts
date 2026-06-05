@@ -13,10 +13,24 @@ export const BOX_OPEN_MAX_SEC = 120;
 export const OUTSIDE_WINDOW_PENALTY_SEC = 120;
 export const MISSED_JOKER_PENALTY_SEC = 120;
 
+export interface DriverChangeOverrides {
+  minute1?: number;
+  minute2?: number;
+}
+
 /**
- * Driver-change windows are the same for all teams per Article 3a: minutes 18-20 and 38-40.
+ * Driver-change windows. Default per Article 3a (minutes 18-20 and 38-40, same for all teams).
+ * If a briefing-assigned specific minute is provided, the window narrows to a 1-minute slot
+ * starting at that minute.
  */
-export function driverChangeWindow(index: 1 | 2): { openMin: number; closeMin: number } {
+export function driverChangeWindow(
+  index: 1 | 2,
+  overrides?: DriverChangeOverrides,
+): { openMin: number; closeMin: number } {
+  const override = index === 1 ? overrides?.minute1 : overrides?.minute2;
+  if (typeof override === "number" && Number.isFinite(override)) {
+    return { openMin: override, closeMin: override + 1 };
+  }
   return index === 1 ? { openMin: 18, closeMin: 20 } : { openMin: 38, closeMin: 40 };
 }
 
@@ -37,10 +51,13 @@ export function refuelWindow(team: TeamNumber, index: 1 | 2): { openMin: number;
   return { openMin, closeMin: openMin + 1 };
 }
 
-export function buildWindows(team: TeamNumber): RaceWindow[] {
-  const dc1 = driverChangeWindow(1);
+export function buildWindows(
+  team: TeamNumber,
+  overrides?: DriverChangeOverrides,
+): RaceWindow[] {
+  const dc1 = driverChangeWindow(1, overrides);
   const r1 = refuelWindow(team, 1);
-  const dc2 = driverChangeWindow(2);
+  const dc2 = driverChangeWindow(2, overrides);
   const r2 = refuelWindow(team, 2);
   return [
     {
@@ -117,7 +134,11 @@ export function validateDriverChange(
   }
 
   const dcIndex: 1 | 2 = state.currentStint === 1 ? 1 : 2;
-  const win = driverChangeWindow(dcIndex);
+  const overrides: DriverChangeOverrides = {
+    minute1: state.config.driverChangeMinute1,
+    minute2: state.config.driverChangeMinute2,
+  };
+  const win = driverChangeWindow(dcIndex, overrides);
   const openSec = win.openMin * 60;
   const closeSec = win.closeMin * 60;
 
@@ -172,7 +193,10 @@ export function computeCompliance(state: RaceState, elapsed: number): Compliance
     return { level: "ok", messages: [] };
   }
 
-  const windows = buildWindows(state.config.teamNumber);
+  const windows = buildWindows(state.config.teamNumber, {
+    minute1: state.config.driverChangeMinute1,
+    minute2: state.config.driverChangeMinute2,
+  });
 
   // Driver change 1 missed?
   const dc1 = windows[0];
