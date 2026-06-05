@@ -52,6 +52,10 @@ export interface RaceConfig {
   drivers: Driver[];
   stintOrder: [DriverId, DriverId, DriverId];
   raceDurationSec: number;
+  /** Optional briefing-assigned stop minute for driver change 1. If unset, window is 18-20. */
+  driverChangeMinute1?: number;
+  /** Optional briefing-assigned stop minute for driver change 2. If unset, window is 38-40. */
+  driverChangeMinute2?: number;
 }
 
 export interface RaceState {
