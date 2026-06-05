@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kart-Time — Endurance Monaco 2026
 
-## Getting Started
+Personal race console for our 2-driver team (Renan + Bruno). One page, local-only,
+zero sign-in. Designed for tablet/laptop pit use.
 
-First, run the development server:
+Built straight from the EDITAL ENDURANCE MONACO 2026 rulebook (the PDF is in the repo root).
+
+## What it tracks
+
+- 60-minute race clock (resumes from `localStorage` after reload)
+- Three mandatory stints with active driver + Joker-Lap state
+- Two driver-change windows (min 18-20 / 38-40) — Art. 3a
+- Two refuel windows derived from your team number (Art. 11 cronograma)
+- Auto +120s penalty when an action lands outside its window (Art. 3b / Art. 4)
+- Driver-change-during-refuel block (Art. 4d → DSQ guard)
+- Same-driver consecutive-stint block (Art. 1d → DSQ guard)
+- Manual penalty entry, event log, projected final time
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
+npm run build        # production build (run before pushing)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open the **Setup** dialog (top-right) and pick your team number (1–10). Refuel
+windows recalculate automatically.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx vercel deploy --prod
+```
 
-## Learn More
+No env vars, no backend, no DB. Vercel auto-detects Next.js.
 
-To learn more about Next.js, take a look at the following resources:
+## State persistence
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Everything lives in `localStorage` under `kart-time-race`. Refresh-safe.
+"New Race" wipes the run but preserves team + driver config.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Stack
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 · React 19.2 · Tailwind v4 · Zustand · Radix primitives · lucide-react
